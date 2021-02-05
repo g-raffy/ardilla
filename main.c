@@ -1,5 +1,31 @@
+#include <stdio.h>
+#include <stdlib.h>
 
 typedef enum {false, true} bool;
+
+
+// array of pointers to structures
+typedef struct
+{
+    int iNum_Elements;
+    void *pElements;
+} Array;
+
+void array_init(Array* pArray)
+{
+    pArray->iNum_Elements = 0;
+    pArray->pElements = NULL;
+}
+
+void array_empty(Array* pArray)
+{
+    if( pArray->iNum_Elements > 0 )
+    {
+        free(pArray->pElements);
+        pArray->pElements = NULL;
+        pArray->iNum_Elements = 0;
+    }
+}
 
 typedef int PieceId;
 
@@ -18,12 +44,62 @@ typedef struct
     int iY;
 } Position;
 
+
+/*
+    description of the material used for a game (how many rows and columns in the borad, description of the pieces)
+*/
 typedef struct 
 {
-    int iWidth;
-    int iHeight;
-    int iNumHoles;
-    Position * pHolesLocations;
+    // number of rows and columns of the board
+    int iNumRows;
+    int iNumCols;
+
+    Array sPieceDefs; // array of PieceDef
+    
+    Array sHolesPos;  // array of Position
+} Material;
+
+Material * material_create(int iNumRows, int iNumCols)
+{
+    Material* pMaterial = (Material *)malloc(sizeof(Material));
+    pMaterial->iNumRows = iNumRows;
+    pMaterial->iNumCols = iNumCols;
+    array_init(&pMaterial->sPieceDefs);
+    array_init(&pMaterial->sHolesPos);
+    return pMaterial;
+}
+
+void material_delete(Material* pMaterial)
+{
+    // type of pMaterial : Material*
+    // type of *pMaterial : Material
+    // type of (*pMaterial).sPieceDefs : Array
+    // type of pMaterial->sPieceDefs : Array
+    // type of &(pMaterial->sPieceDefs) : Array*
+    array_empty(&(pMaterial->sPieceDefs));
+    array_empty(&(pMaterial->sHolesPos));
+    free(pMaterial);
+}
+
+void material_print(Material* pMaterial)
+{
+    printf("board size : %d x %d\n", pMaterial->iNumRows, pMaterial->iNumCols);
+}
+
+
+typedef struct
+{
+    bool bCellIsCovered;
+    bool bCellHasNut;
+} CellState;
+
+
+// state of every cell in the board
+typedef struct 
+{
+    Material* pMaterial; // reference to the material used
+
+    CellState* pCellState;
 } Board;
 
 typedef struct
@@ -72,6 +148,17 @@ typedef struct
     int iNumMoves;
 } Game;
 
+
+/*
+    a challenge made of initial position of pieces
+*/
+typedef struct
+{
+    Material* pMaterial;
+    Array sPieceStartConfig;  // array of PiecePos
+} Puzzle;
+
+
 void board_play_move(Board* pBoard, Move* pMove)
 {
     // don't forget to set pMove->bNutHasFallen
@@ -97,6 +184,8 @@ void game_pop_move(Game* pGame, Board* pBoard)
 
     board_unplay_move(pBoard, pLastMove);
 }
+
+#ifdef ENABLE_UNFINISHED_CODE
 
 void scan(Game* pGame, Board* pBoard, Game** ppSolutions, int* piNumSolutions)
 {
@@ -138,7 +227,35 @@ void find_solutions(Board* pBoard, PieceDef* pPieceDefs, PiecePos* pPiecesPos, i
     game_delete(pWorkGame);
 }
 
+#endif
+
 int main(int argc, char* argv[])
 {
+    Material* pMaterial = material_create(4, 4);
+    material_print(pMaterial);
+    material_delete(pMaterial);
     return 0;
 }
+
+#ifdef TOTO
+void toto(void)
+{
+    Material a;
+    Material* b;
+    Material** c;
+    a.iNumCols = 5;
+    // type of b   : Material*
+    // type of *b  : Material
+    // type of &b  : Material**
+    // type of &&b : Material***
+
+    // type of &&c : Material****
+    // type of &c  : Material***
+    // type of c   : Material**
+    // type of *c  : Material*
+    // type of **c : Material
+
+    // type of *&c : Material**
+    // type of &*c : Material**
+}
+#endif // TOTO
